@@ -1,18 +1,24 @@
 /**
- *
- * @param data 节点
- * @returns {{data: *, updateStatus: updateStatus, getOrder: (function(*): string)}}
+ * DataProcessor用于根据节点的状态，计算节点的指令
  */
-module.exports = function (data) {
-    return {
-        //节点数据
-        data: data,
-        //更新节点数据
-        updateStatus: (id, status) => data.nodes.filter(node => node.id === id).forEach((node) => node.status = status.toString()),
-        //返回节点应该指示的方向
-        getOrder: function (id) {
-            //TODO 就是这里
-            return "OK"
-        }
+class DataProcessor {
+    constructor(data) {
+        this.data = data
+    }
+
+    updateStatus(id, status) {
+        this.data.nodes.filter(node => node.id === id).forEach(node => node.status = status.toString())
+    }
+
+    getOrder(id) {
+        //TODO 就是这里
+        return "OK"
+    }
+
+    updateStatusAndGetOrder(id, status) {
+        this.updateStatus(id, status)
+        return this.getOrder(id)
     }
 }
+
+module.exports = DataProcessor

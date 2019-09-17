@@ -7,27 +7,19 @@
  */
 const mqtt = require('mqtt')
 
-const port = require("../config.json").mqtt.port
-module.exports = function (
-    // 门锁节点的id，应当唯一
-    id = Math.random().toString(16).substr(2, 8)
-) {
-    const node = mqtt.connect('mqtt://localhost:' + port, {
-        clientId: "mqtt_node_" + id,
-    })
+const config = require("../config.json")
+const info = require("./my-utils").info
 
-    node.on('connect', function () {
-        node.publish('status/' + id, 'Hello mqtt, this is ' + id, {
-            qos: 1
-        })
-        node.subscribe('order/' + id, err => {
-            if (err) {
-                console.error(err)
-            }
-        })
+module.exports = function (
+    id = Math.random().toString(16).substr(2, 8)  // 门锁节点的id，应当唯一
+) {
+    const node = mqtt.connect(`mqtt://${config.mqtt.ip}:${config.mqtt.port}`, {clientId: 'mqtt_node_' + id,})
+    node.on('connect', () => {
+        node.subscribe('order/' + id)
+        node.publish('status/' + id, "Hello, I'm " + id, {qos: 1, retain: true})
     })
-    node.on('message', function (topic, message) {
-        console.log(message.toString(), "Received By mqtt_node_", id)
+    node.on('message', (topic, message) => {
+        info('mqtt_node_' + id, message.toString(), "Received")
     })
     return node
 }

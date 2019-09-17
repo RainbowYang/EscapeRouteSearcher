@@ -1,9 +1,9 @@
-let broker = require("./utils/mqtt-broker")
-let data_client = require("./utils/mqtt-data-client")()
-
+const data_processor = require("./utils/data-processor-proxy")
 const node_maker = require("./utils/door-node")
-const node = node_maker(1)
-const node2 = node_maker(2)
-setInterval(() => {
-    node.publish("status/1", "1")
-}, 3000)
+
+const data = require("./data.json")
+
+data_processor.start(data)
+
+const node0 = node_maker(0)
+const node1 = node_maker(1)
