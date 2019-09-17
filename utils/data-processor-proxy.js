@@ -1,5 +1,5 @@
 /**
- * 为[data-processor.js]代理与mqtt之前的通信交流
+ * 为[data-processor.js]代理与mqtt之间的通信交流
  */
 const mqtt = require('mqtt')
 
