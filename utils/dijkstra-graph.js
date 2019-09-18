@@ -19,7 +19,7 @@ class DijkstraGraph {
         this.arc[source][target] = this.arc[target][source] = weight
     }
 
-    Dijkstra(begin, end) {
+    Dijkstra(begin, ends) {
         //创建dis对象数组, 并初始化以这个begin为起点的dis数组
         //dis对象包含value（最短的路径值），path（最短的路径信息），visited（是否遍历）
         let dis = []
@@ -53,12 +53,8 @@ class DijkstraGraph {
                 }
             }
         }
-
-        if (dis[end].value < Number.MAX_VALUE) {
-            return dis[end].path
-        } else {
-            return []
-        }
+        //有多个end时，返回最短的路径
+        return dis[ends[ends.reduce((tmp, cur, i) => dis[i].value < dis[tmp].value ? i : tmp, 0)]].path
     }
 }
 

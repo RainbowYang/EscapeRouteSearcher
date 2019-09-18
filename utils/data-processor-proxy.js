@@ -21,7 +21,7 @@ module.exports = {
         proxy.on('message', (topic, payload) => {
             info(name, "Received", payload.toString(), "Under", topic)
             let id = topic.split("status/")[1]
-            let order = processor.updateStatusAndGetOrder(id, payload)
+            let order = processor.updateStatusAndGetOrder(id, payload).toString()
             proxy.publish(`order/${id}`, order, () => info(name, "Publish", order, "Under", `order/${id}`))
         })
     }
