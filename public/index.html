@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>节点动画</title>
+  <style>::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    overflow: hidden;
+    margin: 0;
+  }</style>
+</head>
+<body>
+<div id="mountNode"></div>
+<script>/*Fixing iframe window.innerHeight 0 issue in Safari*/
+document.body.clientHeight</script>
+<script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g6-3.0.5-beta.12/build/g6.js"></script>
+<script src="https://gw.alipayobjects.com/os/antv/assets/lib/jquery-3.2.1.min.js"></script>
+<script src="https://unpkg.com/mqtt@3.0.0/dist/mqtt.min.js"></script>
+<script src="javascripts/data-manager.js"></script>
+<script>
+    let Util = G6.Util
+
+    // 放大、变小动画
+    G6.registerNode('circle-animate', {
+        afterDraw: function afterDraw(cfg, group) {
+            var shape = group.get('children')[0]
+            shape.animate({
+                repeat: true,
+                onFrame: function onFrame(ratio) {
+                    var diff = ratio <= 0.5 ? ratio * 10 : (1 - ratio) * 10
+                    return {
+                        r: cfg.size / 2 + diff
+                    }
+                }
+            }, 3000, 'easeCubic')
+        }
+    }, 'circle')
+
+    G6.registerNode('background-animate', {
+        afterDraw: function afterDraw(cfg, group) {
+            var r = cfg.size / 2
+            var back1 = group.addShape('circle', {
+                zIndex: -3,
+                attrs: {
+                    x: 0,
+                    y: 0,
+                    r: r,
+                    fill: cfg.color,
+                    opacity: 0.6
+                }
+            })
+            var back2 = group.addShape('circle', {
+                zIndex: -2,
+                attrs: {
+                    x: 0,
+                    y: 0,
+                    r: r,
+                    fill: cfg.color, // 为了显示清晰，随意设置了颜色
+                    opacity: 0.6
+                }
+            })
+
+            var back3 = group.addShape('circle', {
+                zIndex: -1,
+                attrs: {
+                    x: 0,
+                    y: 0,
+                    r: r,
+                    fill: cfg.color,
+                    opacity: 0.6
+                }
+            })
+            group.sort() // 排序，根据zIndex 排序
+            back1.animate({ // 逐渐放大，并消失
+                r: r + 10,
+                opacity: 0.1,
+                repeat: true // 循环
+            }, 3000, 'easeCubic', null, 0) // 无延迟
+
+            back2.animate({ // 逐渐放大，并消失
+                r: r + 10,
+                opacity: 0.1,
+                repeat: true // 循环
+            }, 3000, 'easeCubic', null, 1000) // 1 秒延迟
+
+            back3.animate({ // 逐渐放大，并消失
+                r: r + 10,
+                opacity: 0.1,
+                repeat: true // 循环
+            }, 3000, 'easeCubic', null, 2000) // 2 秒延迟
+        }
+    }, 'circle')
+
+    G6.registerNode('inner-animate', {
+        afterDraw: function afterDraw(cfg, group) {
+            var size = cfg.size
+            var width = size[0] - 12
+            var height = size[1] - 12
+            var image = group.addShape('image', {
+                attrs: {
+                    x: -width / 2,
+                    y: -height / 2,
+                    width: width,
+                    height: height,
+                    img: cfg.img
+                }
+            })
+            image.animate({
+                onFrame: function onFrame(ratio) {
+                    var matrix = Util.mat3.create()
+                    var toMatrix = Util.transform(matrix, [['r', ratio * Math.PI * 2]])
+                    return {
+                        matrix: toMatrix
+                    }
+                },
+
+                repeat: true
+            }, 3000, 'easeCubic')
+        }
+    }, 'rect')
+
+    const graph = new G6.Graph({
+        container: 'mountNode',
+        width: window.innerWidth,
+        height: window.innerHeight,
+        edgeStyle: {
+            default: {
+                lineWidth: 1,
+                stroke: '#b5b5b5'
+            }
+        }
+    })
+    let manager = new DataManager((data) => {
+        graph.read(data)
+    })
+</script>
+</body>
+</html>
