@@ -19,25 +19,12 @@ document.body.clientHeight</script>
 <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g6-3.0.5-beta.12/build/g6.js"></script>
 <script src="https://gw.alipayobjects.com/os/antv/assets/lib/jquery-3.2.1.min.js"></script>
 <script src="https://unpkg.com/mqtt@3.0.0/dist/mqtt.min.js"></script>
-<script src="javascripts/data-manager.js"></script>
+<script src="https://cdn.bootcss.com/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
+<script src="./javascripts/data-manager.js"></script>
+<script src="./javascripts/data-manager-proxy.js"></script>
+
 <script>
     let Util = G6.Util
-
-    // 放大、变小动画
-    G6.registerNode('circle-animate', {
-        afterDraw: function afterDraw(cfg, group) {
-            var shape = group.get('children')[0]
-            shape.animate({
-                repeat: true,
-                onFrame: function onFrame(ratio) {
-                    var diff = ratio <= 0.5 ? ratio * 10 : (1 - ratio) * 10
-                    return {
-                        r: cfg.size / 2 + diff
-                    }
-                }
-            }, 3000, 'easeCubic')
-        }
-    }, 'circle')
 
     G6.registerNode('background-animate', {
         afterDraw: function afterDraw(cfg, group) {
@@ -134,7 +121,8 @@ document.body.clientHeight</script>
         }
     })
     let manager = new DataManager((data) => {
-        graph.read(data)
+        graph.changeData(data)
+        graph.render()
     })
 </script>
 </body>

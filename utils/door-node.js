@@ -16,7 +16,7 @@ module.exports = function (
     const node = mqtt.connect(`mqtt://${config.mqtt.ip}:${config.mqtt.port}`, {clientId: 'mqtt_node_' + id,})
     node.on('connect', () => {
         node.subscribe('order/' + id)
-        node.publish('status/' + id, "Hello, I'm " + id, {qos: 1, retain: true})
+        node.publish('status/' + id, "0", {qos: 1, retain: true})
     })
     node.on('message', (topic, message) => {
         info('mqtt_node_' + id, message.toString(), "Received")

@@ -14,8 +14,6 @@ class DijkstraGraph {
     }
 
     setEdge(source, target, weight) {
-        //其实也可以直接存所有的edge，不存在的就返回无穷大
-        // 感觉二维矩阵有点浪费
         this.arc[source][target] = this.arc[target][source] = weight
     }
 
@@ -59,21 +57,3 @@ class DijkstraGraph {
 }
 
 module.exports = DijkstraGraph
-
-// let graph = new DijkstraGraph(10)
-// //初始化，以后还要加一些判断边数和顶点数是否合法，关系如下：
-// //顶点数和边数的关系是：((vertex*(vertex - 1)) / 2) < edge
-// //创建领接矩阵先用前端布好的位置,以后可以用前端的数据来更新领接矩阵
-// graph.setEdge(1, 3, 100)
-// graph.setEdge(1, 6, 100)
-// graph.setEdge(2, 4, 100)
-// graph.setEdge(3, 8, 100)
-// graph.setEdge(2, 5, 200)
-// graph.setEdge(5, 8, 100)
-// graph.setEdge(4, 7, 100)
-// graph.setEdge(6, 7, 250)
-//
-// //将节点1作为起点,将节点8作为终点
-// console.log(graph.Dijkstra(1, 8))
-
-//然后把最短路径经过的节点，在前端亮起来， 把shape的 'circle-animate'属性改成 'background-animate',再加上color: '#40a9ff'
