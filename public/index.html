@@ -19,7 +19,6 @@ document.body.clientHeight</script>
 <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g6-3.0.5-beta.12/build/g6.js"></script>
 <script src="https://gw.alipayobjects.com/os/antv/assets/lib/jquery-3.2.1.min.js"></script>
 <script src="https://unpkg.com/mqtt@3.0.0/dist/mqtt.min.js"></script>
-<script src="https://cdn.bootcss.com/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
 <script src="./javascripts/data-manager.js"></script>
 <script src="./javascripts/data-manager-proxy.js"></script>
 
@@ -80,7 +79,6 @@ document.body.clientHeight</script>
             }, 3000, 'easeCubic', null, 2000) // 2 秒延迟
         }
     }, 'circle')
-
     G6.registerNode('inner-animate', {
         afterDraw: function afterDraw(cfg, group) {
             var size = cfg.size
@@ -103,7 +101,6 @@ document.body.clientHeight</script>
                         matrix: toMatrix
                     }
                 },
-
                 repeat: true
             }, 3000, 'easeCubic')
         }

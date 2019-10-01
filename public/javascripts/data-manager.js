@@ -1,8 +1,8 @@
 class DataManager {
     constructor(callback) {
         this.callback = callback
-        $.getJSON('/static/data.json', metadata => {
-            this.metadata = metadata
+        $.getJSON('/static/data.json', data => {
+            this.metadata = data.test //TODO 暂时使用test
             this.changed = true
             this.callback(this.getData())
 

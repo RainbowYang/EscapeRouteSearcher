@@ -6,21 +6,29 @@
  * 每个节点都应该（通过 "status/[id]" 的topic）发布(publish)自身周围的火灾状态，并设置qos大于等于1。
  */
 const mqtt = require('mqtt')
+const utils = require("./my-utils")
 
-const config = require("../config.json")
-const info = require("./my-utils").info
+class DoorNode {
+    constructor(id, mapName = "test") {
+        this.NAME = "Node" + id
+        this.info = utils.info(this.NAME)
+        this.subscribeTopic = utils.makeTopic(utils.ORDER, mapName, id)
+        this.publishTopic = utils.makeTopic(utils.STATUS, mapName, id)
 
-module.exports = function (
-    id = Math.random().toString(16).substr(2, 8)  // 门锁节点的id，应当唯一
-) {
-    const node = mqtt.connect(`mqtt://${config.mqtt.ip}:${config.mqtt.port}`, {clientId: 'mqtt_node_' + id,})
-    node.on('connect', () => {
-        node.subscribe('order/' + id)
-        node.publish('status/' + id, "0", {qos: 1, retain: true})
-    })
-    node.on('message', (topic, message) => {
-        info('mqtt_node_' + id, message.toString(), "Received")
-    })
-    return node
+        this.node = mqtt.connect(utils.getMqttAddress(), {clientId: this.NAME})
+
+        this.node.on('connect', () => {
+            this.node.subscribe(this.subscribeTopic)
+            this.publish(0)
+        })
+        this.node.on('message', (topic, message) => this.info("Received", message.toString()))
+    }
+
+    publish(message) {
+        this.node.publish(this.publishTopic, message.toString(), {qos: 1, retain: true},
+            () => this.info("Publish", message.toString()))
+    }
 }
+
+module.exports = DoorNode
 

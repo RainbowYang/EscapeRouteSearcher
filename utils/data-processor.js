@@ -1,31 +1,56 @@
 /**
  * DataProcessor用于根据节点的状态，计算节点的指令
  */
+const mqtt = require('mqtt')
+
 const DijkstraGraph = require("./dijkstra-graph")
+const utils = require("./my-utils")
+
+const STATUS = utils.STATUS
+const ORDER = utils.ORDER
+const NAME = "DataProcessor"
+
+const info = utils.info(NAME)
 
 class DataProcessor {
-    constructor(data) {
-        this.data = data
+    constructor(map) {
+        // map 应拥有nodes和edges属性
+        this.map = map
+        this.proxy = new DataProcessor.Proxy(this)
 
-        this.graph = new DijkstraGraph(data.nodes.length)
-        data.edges.forEach(edge => {
-            this.graph.setEdge(edge.source, edge.target, edge.distance)
+        this.graph = new DijkstraGraph(map.nodes.length)
+        map.edges.forEach(edge => this.graph.setEdge(edge.source, edge.target, edge.distance))
+
+        this.setStatus = (id, status) => this.map.nodes[id].status = status.toString()
+        this.getOrder = (id) => this.graph.Dijkstra(id, this.map.exits).toString()
+    }
+}
+
+/**
+ * 为 [DataProcessor] 处理mqtt通信
+ * @type {DataProcessor.DataProcessorProxy}
+ */
+DataProcessor.Proxy = class DataProcessorProxy {
+    constructor(processor) {
+        let client = mqtt.connect(utils.getMqttAddress(), {clientId: NAME})
+
+        // 连接时，订阅所有节点的信息
+        client.on('connect', () =>
+            processor.map.nodes.forEach((_, index) => {
+                let topic = utils.makeTopic(STATUS, processor.map.name, index)
+                client.subscribe(topic, {qos: 1}, () => info("Subscribed", topic))
+            })
+        )
+
+        // 收到信息时，处理收到的节点状态，发布节点的指令
+        client.on('message', (topic, payload) => {
+            info("Received", payload.toString(), "Under", topic)
+            let {id} = utils.splitTopic(topic)
+            processor.setStatus(id, payload)
+            let order = processor.getOrder(id)
+            let orderTopic = utils.makeTopic(ORDER, processor.map.name, id)
+            client.publish(orderTopic, order, () => info("Publish", order, "Under", orderTopic))
         })
-
-        this.exits = data.nodes.filter(node => node.isExit).map(node => node.id)
-    }
-
-    updateStatus(id, status) {
-        this.data.nodes.filter(node => node.id === id).forEach(node => node.status = status.toString())
-    }
-
-    getOrder(id) {
-        return this.graph.Dijkstra(id, this.exits)
-    }
-
-    updateStatusAndGetOrder(id, status) {
-        this.updateStatus(id, status)
-        return this.getOrder(id)
     }
 }
 
