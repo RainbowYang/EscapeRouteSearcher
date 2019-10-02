@@ -1,9 +1,9 @@
-const DataProcessor = require("./utils/data-processor")
+const MapManager = require("./utils/map-manager")
 const DoorNode = require("./utils/door-node")
 
 const data = require("./public/data.json")
-let dp = new DataProcessor(data.maps.test)
-let nodes = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(v => new DoorNode(v))
+let managers = Object.keys(data.maps).map(key => new MapManager(data.maps[key]))
+let nodes = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(v => new DoorNode(v, 'test'))
 
 setTimeout(() => nodes[2].publish(2), 3000)
 

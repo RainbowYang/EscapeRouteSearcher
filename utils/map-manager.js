@@ -8,15 +8,15 @@ const utils = require("./my-utils")
 
 const STATUS = utils.STATUS
 const ORDER = utils.ORDER
-const NAME = "DataProcessor"
+const NAME = "MapManager"
 
 const info = utils.info(NAME)
 
-class DataProcessor {
+class MapManager {
     constructor(map) {
         // map 应拥有nodes和edges属性
         this.map = map
-        this.proxy = new DataProcessor.Proxy(this)
+        this.proxy = new MapManager.Proxy(this)
 
         this.graph = new DijkstraGraph(map.nodes.length)
         map.edges.forEach(edge => this.graph.setEdge(edge.source, edge.target, edge.distance))
@@ -30,17 +30,17 @@ class DataProcessor {
 }
 
 /**
- * 为 [DataProcessor] 处理mqtt通信
- * @type {DataProcessor.DataProcessorProxy}
+ * 为 [MapManager] 处理mqtt通信
+ * @type {MapManager.MapManagerProxy}
  */
-DataProcessor.Proxy = class DataProcessorProxy {
-    constructor(processor) {
+MapManager.Proxy = class MapManagerProxy {
+    constructor(manager) {
         let client = mqtt.connect(utils.getMqttAddress(), {clientId: NAME})
 
         // 连接时，订阅所有节点的信息
         client.on('connect', () =>
-            processor.map.nodes.forEach((_, index) => {
-                let topic = utils.makeTopic(STATUS, processor.map.name, index)
+            manager.map.nodes.forEach((_, index) => {
+                let topic = utils.makeTopic(STATUS, manager.map.name, index)
                 client.subscribe(topic, {qos: 1}, () => info("Subscribed", topic))
             })
         )
@@ -49,12 +49,12 @@ DataProcessor.Proxy = class DataProcessorProxy {
         client.on('message', (topic, payload) => {
             info("Received", payload.toString(), "Under", topic)
             let {id} = utils.splitTopic(topic)
-            processor.setStatus(id, payload)
-            let order = processor.getOrder(id)
-            let orderTopic = utils.makeTopic(ORDER, processor.map.name, id)
+            manager.setStatus(id, payload)
+            let order = manager.getOrder(id)
+            let orderTopic = utils.makeTopic(ORDER, manager.map.name, id)
             client.publish(orderTopic, order, () => info("Publish", order, "Under", orderTopic))
         })
     }
 }
 
-module.exports = DataProcessor
+module.exports = MapManager
