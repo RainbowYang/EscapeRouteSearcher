@@ -21,7 +21,10 @@ class DataProcessor {
         this.graph = new DijkstraGraph(map.nodes.length)
         map.edges.forEach(edge => this.graph.setEdge(edge.source, edge.target, edge.distance))
 
-        this.setStatus = (id, status) => this.map.nodes[id].status = status.toString()
+        this.setStatus = (id, status) =>
+            map.edges.filter(edge => edge.target.toString() === id).forEach(edge =>
+                this.graph.setEdge(edge.source, edge.target, edge.distance * Math.exp(parseInt(status))))
+
         this.getOrder = (id) => this.graph.Dijkstra(id, this.map.exits).toString()
     }
 }
