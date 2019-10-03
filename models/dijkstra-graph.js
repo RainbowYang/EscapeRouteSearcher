@@ -16,10 +16,10 @@ class DijkstraGraph {
     }
 
     setEdge(source, target, weight) {
-        this.arc[source][target] = this.arc[target][source] = weight
+        this.arc[source][target] = weight
     }
 
-    Dijkstra(begin, ends) {
+    getPath(begin, ends) {
         //创建dis对象数组, 并初始化以这个begin为起点的dis数组
         //dis对象包含value（最短的路径值），path（最短的路径信息），visited（是否遍历）
         let dis = []

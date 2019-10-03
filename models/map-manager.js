@@ -13,22 +13,37 @@ class MapManager {
         this.name = 'MapManager_' + map.name
         this.info = utils.info(this.name)
 
-        this.orders = []
+        // 让node的id对应到其在数组中的index
+        this.nodeMap = {}
+        map.nodes.forEach((node, index) => this.nodeMap[node.id] = index)
+
+        // node的order缓存
+        this.orders = {}
+        map.nodes.forEach(node => this.orders[node.id] = [])
 
         this.proxy = new MapManager.Proxy(this)
         this.graph = new DijkstraGraph(map.nodes.length)
-        map.edges.forEach(edge => this.graph.setEdge(edge.source, edge.target, edge.distance))
+        map.edges.forEach(edge => {
+            this.setEdgeById(edge.source, edge.target, edge.distance)
+            this.setEdgeById(edge.target, edge.source, edge.distance)
+        })
+    }
 
-        map.nodes.forEach((_, index) => this[index] = [])
+    setEdgeById(source, target, weight) {
+        this.graph.setEdge(this.nodeMap[source], this.nodeMap[target], weight)
+    }
+
+    getPathById(begin, ends) {
+        return this.graph.getPath(this.nodeMap[begin], ends.map(id => this.nodeMap[id]))
     }
 
     setStatus(id, status) {
         this.map.edges.filter(edge => edge.target.toString() === id).forEach(edge =>
-            this.graph.setEdge(edge.source, edge.target, edge.distance * Math.exp(parseInt(status))))
+            this.setEdgeById(edge.source, edge.target, edge.distance * Math.exp(parseInt(status))))
     }
 
     getOrder(id) {
-        let order = this.graph.Dijkstra(id, this.map.exits).join(" ")
+        let order = this.getPathById(id, this.map.exits).join(" ")
         return order === this.orders[id] ? null : this.orders[id] = order
     }
 }
@@ -43,8 +58,8 @@ MapManager.Proxy = class MapManagerProxy {
 
         // 连接时，订阅所有节点的信息
         client.on('connect', () =>
-            manager.map.nodes.forEach((_, index) => {
-                let topic = utils.makeStatusTopic(manager.map.name, index)
+            manager.map.nodes.forEach(node => {
+                let topic = utils.makeStatusTopic(manager.map.name, node.id)
                 client.subscribe(topic, {qos: 1}, () => manager.info("Subscribed", topic))
             })
         )
@@ -53,10 +68,10 @@ MapManager.Proxy = class MapManagerProxy {
         client.on('message', (topic, payload) => {
             manager.info("Received", payload.toString(), "Under", topic)
             manager.setStatus(utils.splitTopic(topic).id, payload)
-            manager.map.nodes.forEach((value, index) => {
-                let order = manager.getOrder(index)
-                if (order !== null) {
-                    let orderTopic = utils.makeOrderTopic(manager.map.name, index)
+            manager.map.nodes.forEach(node => {
+                let order = manager.getOrder(node.id)
+                if (order) {
+                    let orderTopic = utils.makeOrderTopic(manager.map.name, node.id)
                     client.publish(orderTopic, order, () => manager.info("Publish", order, "Under", orderTopic))
                 }
             })
