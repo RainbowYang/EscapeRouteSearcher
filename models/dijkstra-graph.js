@@ -1,3 +1,5 @@
+const MAX = 1E100
+
 class DijkstraGraph {
     //初始化地图
     constructor(vertex) {
@@ -8,7 +10,7 @@ class DijkstraGraph {
         for (let i = 0; i < this.vertex; i++) {
             this.arc.push([])
             for (let j = 0; j < this.vertex; j++) {
-                this.arc[i].push(i === j ? 0 : Number.MAX_VALUE)
+                this.arc[i].push(i === j ? 0 : MAX)
             }
         }
     }
@@ -33,7 +35,7 @@ class DijkstraGraph {
             //temp用于保存当前dis数组中值最小的下标
             let temp = 0
             //min记录当前的最小值
-            let min = Number.MAX_VALUE
+            let min = MAX
             for (let i = 0; i < this.vertex; i++) {
                 if (!dis[i].visited && dis[i].value < min) {
                     min = dis[i].value
@@ -45,7 +47,7 @@ class DijkstraGraph {
             //把temp对应的节点加入到已经找到的最短路径中（更新value和path）
             for (let i = 0; i < this.vertex; i++) {
                 let temp_i_dis = dis[temp].value + this.arc[temp][i]
-                if (!dis[i].visited && temp_i_dis < dis[i].value && this.arc[temp][i] < Number.MAX_VALUE) {
+                if (!dis[i].visited && temp_i_dis < dis[i].value && this.arc[temp][i] < MAX) {
                     dis[i].value = temp_i_dis
                     dis[i].path = dis[temp].path.concat(i)
                 }
