@@ -2,124 +2,96 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>节点动画</title>
-  <style>::-webkit-scrollbar {
-    display: none;
-  }
+  <title>逃生路径</title>
+  <style>
+    html, body, #app, .el-container {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+    }
 
-  html, body {
-    overflow: hidden;
-    margin: 0;
-  }</style>
+    .el-header, .el-footer {
+      background-color: #B3C0D1;
+      color: #333;
+      text-align: center;
+      line-height: 60px;
+    }
+
+    .el-aside {
+      background-color: #D3DCE6;
+      color: #333;
+    }
+
+    .el-main {
+      padding: 0;
+      background-color: #E9EEF3;
+      color: #333;
+    }
+
+    body > .el-container {
+      margin-bottom: 40px;
+    }
+  </style>
+  <script src="https://gw.alipayobjects.com/os/antv/assets/lib/jquery-3.2.1.min.js"></script>
+  <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+  <link href="https://cdn.bootcss.com/element-ui/2.11.1/theme-chalk/index.css" rel="stylesheet">
+  <script src="https://cdn.bootcss.com/element-ui/2.11.1/index.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+  <script src="/static/js/utils.js"></script>
 </head>
 <body>
-<div id="mountNode"></div>
-<script>/*Fixing iframe window.innerHeight 0 issue in Safari*/
-document.body.clientHeight</script>
-<script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g6-3.0.5-beta.12/build/g6.js"></script>
-<script src="https://gw.alipayobjects.com/os/antv/assets/lib/jquery-3.2.1.min.js"></script>
-<script src="https://unpkg.com/mqtt@3.0.0/dist/mqtt.min.js"></script>
-<script src="./javascripts/data-manager.js"></script>
-<script src="./javascripts/data-manager-proxy.js"></script>
-
+<div id="app">
+  <el-container>
+    <el-header>Header</el-header>
+    <el-container>
+      <el-aside width="200px">
+        <el-menu :default-openeds="['1']">
+          <el-submenu index="1">
+            <template slot="title"><i class="el-icon-map-location"></i>Maps</template>
+            <el-menu-item v-for="map_name in maps_name" @click="changeMap(map_name)">
+              <template slot="title"><i class="el-icon-right"></i>{{map_name}}</template>
+            </el-menu-item>
+          </el-submenu>
+        </el-menu>
+      </el-aside>
+      <el-main>
+        <iframe id="map"
+                allowtransparency="true"
+                frameborder="0"
+                scrolling="no"
+                tabindex="0"
+                width="100%"
+                height="100%"
+                horizontalscrolling="no"
+                verticalscrolling="no"
+                style="width: 1px !important;
+                min-width: 100% !important;
+                border: none !important;
+                overflow: hidden !important;"></iframe>
+      </el-main>
+    </el-container>
+    <el-footer>Footer</el-footer>
+  </el-container>
+</div>
 <script>
-    let Util = G6.Util
-
-    G6.registerNode('background-animate', {
-        afterDraw: function afterDraw(cfg, group) {
-            var r = cfg.size / 2
-            var back1 = group.addShape('circle', {
-                zIndex: -3,
-                attrs: {
-                    x: 0,
-                    y: 0,
-                    r: r,
-                    fill: cfg.color,
-                    opacity: 0.6
-                }
-            })
-            var back2 = group.addShape('circle', {
-                zIndex: -2,
-                attrs: {
-                    x: 0,
-                    y: 0,
-                    r: r,
-                    fill: cfg.color, // 为了显示清晰，随意设置了颜色
-                    opacity: 0.6
-                }
-            })
-
-            var back3 = group.addShape('circle', {
-                zIndex: -1,
-                attrs: {
-                    x: 0,
-                    y: 0,
-                    r: r,
-                    fill: cfg.color,
-                    opacity: 0.6
-                }
-            })
-            group.sort() // 排序，根据zIndex 排序
-            back1.animate({ // 逐渐放大，并消失
-                r: r + 10,
-                opacity: 0.1,
-                repeat: true // 循环
-            }, 3000, 'easeCubic', null, 0) // 无延迟
-
-            back2.animate({ // 逐渐放大，并消失
-                r: r + 10,
-                opacity: 0.1,
-                repeat: true // 循环
-            }, 3000, 'easeCubic', null, 1000) // 1 秒延迟
-
-            back3.animate({ // 逐渐放大，并消失
-                r: r + 10,
-                opacity: 0.1,
-                repeat: true // 循环
-            }, 3000, 'easeCubic', null, 2000) // 2 秒延迟
-        }
-    }, 'circle')
-    G6.registerNode('inner-animate', {
-        afterDraw: function afterDraw(cfg, group) {
-            var size = cfg.size
-            var width = size[0] - 12
-            var height = size[1] - 12
-            var image = group.addShape('image', {
-                attrs: {
-                    x: -width / 2,
-                    y: -height / 2,
-                    width: width,
-                    height: height,
-                    img: cfg.img
-                }
-            })
-            image.animate({
-                onFrame: function onFrame(ratio) {
-                    var matrix = Util.mat3.create()
-                    var toMatrix = Util.transform(matrix, [['r', ratio * Math.PI * 2]])
-                    return {
-                        matrix: toMatrix
-                    }
-                },
-                repeat: true
-            }, 3000, 'easeCubic')
-        }
-    }, 'rect')
-
-    const graph = new G6.Graph({
-        container: 'mountNode',
-        width: window.innerWidth,
-        height: window.innerHeight,
-        edgeStyle: {
-            default: {
-                lineWidth: 1,
-                stroke: '#b5b5b5'
+    let app = new Vue({
+        el: "#app",
+        data: {
+            maps_name: []
+        },
+        created() {
+            axios.get('/maps').then(response => response.data.forEach(map => this.maps_name.push(map.name)))
+            if (getURLArg("map")) {
+                $("iframe").attr("src", '/map/' + getURLArg("map"))
+            }
+        },
+        methods: {
+            changeMap: (val) => {
+                setURLArg("map", val)
+                $("iframe").attr("src", '/map/' + val)
             }
         }
-    })
-    let manager = new DataManager((data) => {
-        graph.changeData(data)
-        graph.render()
     })
 </script>
 </body>
