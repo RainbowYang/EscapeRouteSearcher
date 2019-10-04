@@ -11,7 +11,7 @@ mongo.getDatabase("bluetooth").then(async db => {
 
 let managers = {}
 let nodes = [...Array(9).keys()].map(v => new DoorNode(v))
-setTimeout(() => nodes[1].publish(2), 3000)
+setTimeout(() => nodes[2].publish(2), 3000)
 
 // express
 const express = require("express")
