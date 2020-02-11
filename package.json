@@ -10,10 +10,14 @@
     "debug": "^4.1.1",
     "express": "^4.17.1",
     "http-errors": "^1.7.3",
+    "moment": "^2.24.0",
     "morgan": "~1.9.1",
-    "pug": "^2.0.4"
+    "mosca": "^2.8.3",
+    "pug": "^2.0.4",
+    "typescript": "^3.7.4"
   },
   "devDependencies": {
+    "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.3.2",
     "mqtt": "^3.0.0"
   }

@@ -22,7 +22,10 @@
 <script>
     axios.get('/maps/' + window.location.href.split('/').pop()).then((res) => {
         const g6r = new G6Render()
-        const manager = new MapManager(res.data, (data) => g6r.renderMap(data))
+        const manager = new MapManager(res.data, (data) => {
+            g6r.renderMap(data)
+            console.log(data)
+        })
     })
 </script>
 </body>

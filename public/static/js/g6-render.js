@@ -81,6 +81,84 @@ class G6Render {
                 }, 3000, 'easeCubic')
             }
         }, 'rect')
+        G6.registerEdge('circle-running', {
+            afterDraw(cfg, group) {
+                // 获得当前边的第一个图形，这里是边本身的 path
+                const shape = group.get('children')[0]
+                // 边 path 的起点位置
+                const startPoint = shape.getPoint(0)
+
+                // 添加红色 circle 图形
+                const circle = group.addShape('circle', {
+                    attrs: {
+                        x: startPoint.x,
+                        y: startPoint.y,
+                        fill: '#1890ff',
+                        r: 3
+                    }
+                })
+
+                // 对红色圆点添加动画
+                circle.animate({
+                    // 动画重复
+                    repeat: true,
+                    // 每一帧的操作，入参 ratio：这一帧的比例值（Number）。返回值：这一帧需要变化的参数集（Object）。
+                    onFrame(ratio) {
+                        // 根据比例值，获得在边 path 上对应比例的位置。
+                        const tmpPoint = shape.getPoint(ratio)
+                        // 返回需要变化的参数集，这里返回了位置 x 和 y
+                        return {
+                            x: tmpPoint.x,
+                            y: tmpPoint.y
+                        }
+                    }
+                }, 3000) // 一次动画的时间长度
+            }
+        }, 'line')
+        const dashArray = [
+            [0, 1],
+            [0, 2],
+            [1, 2],
+            [0, 1, 1, 2],
+            [0, 2, 1, 2],
+            [1, 2, 1, 2],
+            [2, 2, 1, 2],
+            [3, 2, 1, 2],
+            [4, 2, 1, 2]
+        ]
+
+        const lineDash = [4, 2, 1, 2]
+        const interval = 9 // lineDash 的和
+        G6.registerEdge('line-dash', {
+            afterDraw(cfg, group) {
+                // 获得该边的第一个图形，这里是边的 path
+                const shape = group.get('children')[0]
+                // 获得边的 path 的总长度
+                const length = shape.getTotalLength()
+                let totalArray = []
+                // 计算出整条线的 lineDash
+                for (let i = 0; i < length; i += interval) {
+                    totalArray = totalArray.concat(lineDash)
+                }
+
+                let index = 0
+                // 边 path 图形的动画
+                shape.animate({
+                    // 动画重复
+                    repeat: true,
+                    // 每一帧的操作，入参 ratio：这一帧的比例值（Number）。返回值：这一帧需要变化的参数集（Object）。
+                    onFrame() {
+                        const cfg = {
+                            lineDash: dashArray[index].concat(totalArray)
+                        }
+                        // 每次移动 1
+                        index = (index + 1) % interval
+                        // 返回需要修改的参数集，这里只修改了 lineDash
+                        return cfg
+                    }
+                }, 3000)  // 一次动画的时长为 3000
+            }
+        }, 'line')
 
         this.graph = new G6.Graph({
             container: 'mountNode',
@@ -88,15 +166,22 @@ class G6Render {
             height: window.innerHeight,
             edgeStyle: {
                 default: {
-                    lineWidth: 1,
-                    stroke: '#b5b5b5'
+                    lineWidth: 2,
+                    stroke: '#b41400'
+                }
+            },
+            defaultEdge: {
+                shape: 'line',
+                style: {
+                    lineWidth: 2,
+                    stroke: '#67c23a'
                 }
             }
         })
     }
 
     renderMap(data) {
-        this.graph.changeData(data)
+        this.graph.data(data)
         this.graph.render()
     }
 }

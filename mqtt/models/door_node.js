@@ -9,13 +9,13 @@ const mqtt = require('mqtt')
 const utils = require("../utils")
 
 class DoorNode {
-    constructor(id, mapName = "test") {
-        this.NAME = `Node_${mapName}_${id}`
-        this.info = utils.info(this.NAME)
+    constructor(id, mapName) {
+        this.name = `Node_${mapName}_${id}`
+        this.info = utils.info(this.name)
         this.subscribeTopic = utils.makeOrderTopic(mapName, id)
         this.publishTopic = utils.makeStatusTopic(mapName, id)
 
-        this.client = mqtt.connect(utils.getMqttAddress(), {clientId: this.NAME})
+        this.client = mqtt.connect(utils.getMqttAddress(), {clientId: this.name})
         this.client.on('connect', () => {
             this.client.subscribe(this.subscribeTopic)
             this.publish(0)
@@ -24,10 +24,11 @@ class DoorNode {
     }
 
     publish(message) {
-        this.client.publish(this.publishTopic, message.toString(), {qos: 1, retain: true},
+        this.client.publish(this.publishTopic, message.toString(),
+            {qos: 1, retain: 1},
             () => this.info("Publish", message.toString()))
     }
 }
 
-module.exports = DoorNode
+module.exports = (id, mapName = "test") => new DoorNode(id, mapName)
 

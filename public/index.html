@@ -43,7 +43,7 @@
 <body>
 <div id="app">
   <el-container>
-    <el-header>Header</el-header>
+    <el-header>楼宇火宅逃生系统</el-header>
     <el-container>
       <el-aside width="200px">
         <el-menu :default-openeds="['1']">
@@ -51,6 +51,9 @@
             <template slot="title"><i class="el-icon-map-location"></i>Maps</template>
             <el-menu-item v-for="map_name in maps_name" @click="changeMap(map_name)">
               <template slot="title"><i class="el-icon-right"></i>{{map_name}}</template>
+            </el-menu-item>
+            <el-menu-item v-for="map_name in maps_name" @click="editMap(map_name)">
+              <template slot="title"><i class="el-icon-edit"></i>{{map_name}}</template>
             </el-menu-item>
           </el-submenu>
         </el-menu>
@@ -71,25 +74,38 @@
                 overflow: hidden !important;"></iframe>
       </el-main>
     </el-container>
-    <el-footer>Footer</el-footer>
+<!--    <el-footer>Footer</el-footer>-->
   </el-container>
 </div>
 <script>
     let app = new Vue({
         el: "#app",
         data: {
-            maps_name: []
+            maps_name: [],
+            mode: "show",
+            map_name: "test"
+
         },
         created() {
             axios.get('/maps').then(response => response.data.forEach(map => this.maps_name.push(map.name)))
-            if (getURLArg("map")) {
-                $("iframe").attr("src", '/map/' + getURLArg("map"))
-            }
+            if (getURLArg("map"))
+                $("iframe").attr("src", '/' + getURLArg("map"))
+            // if (getURLArg("edit_map")) {
+            // $("iframe").attr("src", '/edit/' + getURLArg("edit_map"))
+            // } else if (getURLArg("map")) {
+            //     $("iframe").attr("src", '/map/' + getURLArg("map"))
+            // }
         },
         methods: {
+            editMap: (val) => {
+                setURLArg("map", "edit/" + val)
+                // setURLArg("mode", "edit")
+                // $("iframe").attr("src", '/edit/' + val)
+            },
             changeMap: (val) => {
-                setURLArg("map", val)
-                $("iframe").attr("src", '/map/' + val)
+                // setURLArg("mode", "map")
+                setURLArg("map", "show/" + val)
+                // $("iframe").attr("src", '/show/' + val)
             }
         }
     })

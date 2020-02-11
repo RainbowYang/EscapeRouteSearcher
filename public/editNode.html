@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>编辑节点</title>
+</head>
+<body>
+<div id="mountNode"></div>
+<select id="selector">
+  <option value="default">移动节点位置</option>
+  <option value="addNode">添加节点</option>
+  <option value="addEdge">添加边</option>
+</select>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g6-3.0.5-beta.12/build/g6.js"></script>
+<script>
+    // 创建 G6 图实例
+    const graph = new G6.Graph({
+        container: 'mountNode',     //指定图画布的挂载容器： id与第8行的容器对应
+        // 画布宽高
+        width: 1000,
+        height: 500,
+        defaultNode: {
+            shape: 'circleNode' //在下面的registerNode设置
+        },
+        //边的设置
+        defaultEdge: {
+            lineWidth: 1,
+            stroke: '#b5b5b5'
+        },
+        modes: {
+            default: ['drag-node', 'click-select'],         //默认状态：拖动节点：drag-node（本身就有的Behavior）
+            addNode: ['click-add-node', 'click-select'],    //创建节点
+            addEdge: ['click-add-edge', 'click-select']     //连接边
+        }
+    })
+    //设置节点的各种属性
+    G6.registerNode('circleNode', {
+        drawShape: function drawShape(cfg, group) {
+            var keyShape = group.addShape('circle', {
+                attrs: {
+                    x: 0,
+                    y: 0,
+                    r: 15,
+                    fill: '#67c23a' //node color
+                }
+            })
+            return keyShape
+        }
+    }, 'circle')
+
+
+    //初始页面的呈现
+    const data = {
+        nodes: [{
+            id: 'node1',
+            x: 100,
+            y: 200
+        }, {
+            id: 'node2',
+            x: 300,
+            y: 200
+        }, {
+            id: 'node3',
+            x: 300,
+            y: 300
+        }],
+        edges: [{
+            id: 'edge1',
+            target: 'node2',
+            source: 'node1'
+        }]
+    }
+
+    // 点击画布内增加节点
+    G6.registerBehavior('click-add-node', {
+        getEvents() {
+            return {
+                'canvas:click': 'onClick'       //点击画布执行onClick
+            }
+        },
+        onClick(ev) {                       //这里和下面的ev是Event类型，包含事件句柄、当前操作对象及各坐标值等
+            const graph = this.graph
+            const node = graph.addItem('node', {
+                x: ev.x,    //元素视口 x 坐标
+                y: ev.y,    //元素视口 y 坐标
+                id: G6.Util.uniqueId()
+            })
+        }
+    })
+
+
+    // 连接选中的两个节点
+    G6.registerBehavior('click-add-edge', {
+        getEvents() {
+            return {
+                'node:click': 'onClick',    //单击选中节点
+                mousemove: 'onMousemove',   //鼠标移动，还没有连好的边也一起移动
+                'edge:click': 'onEdgeClick' // 点击空白处，取消边
+            }
+        },
+        onClick(ev) {
+            const node = ev.item
+            const graph = this.graph
+            const point = {
+                x: ev.x,
+                y: ev.y
+            }
+            const model = node.getModel()
+            if (this.addingEdge && this.edge) {
+                graph.updateItem(this.edge, {
+                    target: model.id
+                })
+                // graph.setItemState(this.edge, 'selected', true);
+                this.edge = null
+                this.addingEdge = false
+            } else {
+                this.edge = graph.addItem('edge', {
+                    source: model.id,
+                    target: point
+                })
+                this.addingEdge = true
+            }
+        },
+        onMousemove(ev) {
+            const point = {
+                x: ev.x,
+                y: ev.y
+            }
+            if (this.addingEdge && this.edge) {
+                this.graph.updateItem(this.edge, {
+                    target: point
+                })
+            }
+        },
+        onEdgeClick(ev) {
+            const currentEdge = ev.item
+            // 拖拽过程中，点击会点击到新增的边上
+            if (this.addingEdge && this.edge == currentEdge) {
+                graph.removeItem(this.edge)
+                this.edge = null
+                this.addingEdge = false
+            }
+        }
+    })
+
+
+    // 读取数据
+    graph.data(data)
+    // 渲染图
+    graph.render()
+
+    // 在selector上监听
+    document.getElementById('selector').addEventListener('change', e => {
+        const value = e.target.value
+
+        graph.setMode(value)
+
+
+    })
+
+    axios.get('/maps/' + window.location.href.split('/').pop()).then((res) => {
+        // 读取数据
+        graph.data(res.data)
+        // 渲染图
+        graph.render()
+    })
+</script>
+</body>
+</html>

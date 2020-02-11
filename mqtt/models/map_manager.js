@@ -43,7 +43,7 @@ class MapManager {
     }
 
     getOrder(id) {
-        let order = this.getPathById(id, this.map.exits).join(" ")
+        let order = this.getPathById(id, this.map.exits).map(index => this.map.nodes[index].id).join(" ")
         return order === this.orders[id] ? null : this.orders[id] = order
     }
 }
@@ -57,11 +57,10 @@ MapManager.Proxy = class MapManagerProxy {
         let client = mqtt.connect(utils.getMqttAddress(), {clientId: manager.name})
 
         // 连接时，订阅所有节点的信息
-        client.on('connect', () =>
-            manager.map.nodes.forEach(node => {
-                let topic = utils.makeStatusTopic(manager.map.name, node.id)
+        client.on('connect', () => {
+                let topic = utils.makeStatusTopic(manager.map.name, "#")
                 client.subscribe(topic, {qos: 1}, () => manager.info("Subscribed", topic))
-            })
+            }
         )
 
         // 收到信息时，处理收到的节点状态，发布节点的指令
@@ -72,11 +71,12 @@ MapManager.Proxy = class MapManagerProxy {
                 let order = manager.getOrder(node.id)
                 if (order) {
                     let orderTopic = utils.makeOrderTopic(manager.map.name, node.id)
-                    client.publish(orderTopic, order, () => manager.info("Publish", order, "Under", orderTopic))
+                    client.publish(orderTopic, order, {qos: 1, retain: true},
+                        () => manager.info("Publish", order, "Under", orderTopic))
                 }
             })
         })
     }
 }
 
-module.exports = MapManager
+module.exports = (map) => new MapManager(map)
