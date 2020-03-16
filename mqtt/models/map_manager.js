@@ -1,11 +1,10 @@
-/**
- * MapManager用于根据节点的状态，计算节点的指令
- */
-
 const DijkstraGraph = require("./dijkstra-graph")
 const mqtt = require('mqtt')
 const utils = require("../utils")
 
+/**
+ * MapManager用于根据节点的状态，计算节点的指令
+ */
 class MapManager {
     constructor(map) {
         this.map = map
@@ -13,37 +12,21 @@ class MapManager {
         this.name = 'MapManager_' + map.name
         this.info = utils.info(this.name)
 
-        // 让node的id对应到其在数组中的index
-        this.nodeMap = {}
-        map.nodes.forEach((node, index) => this.nodeMap[node.id] = index)
-
         // node的order缓存
-        this.orders = {}
-        map.nodes.forEach(node => this.orders[node.id] = [])
+        this.orders = new Map()
 
         this.proxy = new MapManager.Proxy(this)
         this.graph = new DijkstraGraph(map.nodes.length)
-        map.edges.forEach(edge => {
-            this.setEdgeById(edge.source, edge.target, edge.distance)
-            this.setEdgeById(edge.target, edge.source, edge.distance)
-        })
-    }
-
-    setEdgeById(source, target, weight) {
-        this.graph.setEdge(this.nodeMap[source], this.nodeMap[target], weight)
-    }
-
-    getPathById(begin, ends) {
-        return this.graph.getPath(this.nodeMap[begin], ends.map(id => this.nodeMap[id]))
+        map.edges.forEach(edge => this.graph.setEdge(edge.source, edge.target, edge.distance, true))
     }
 
     setStatus(id, status) {
         this.map.edges.filter(edge => edge.target.toString() === id).forEach(edge =>
-            this.setEdgeById(edge.source, edge.target, edge.distance * Math.exp(parseInt(status))))
+            this.graph.setEdge(edge.source, edge.target, edge.distance * Math.exp(parseInt(status))))
     }
 
     getOrder(id) {
-        let order = this.getPathById(id, this.map.exits).map(index => this.map.nodes[index].id).join(" ")
+        let order = this.graph.getPath(id, this.map.exits).map(index => this.map.nodes[index].id).join(" ")
         return order === this.orders[id] ? null : this.orders[id] = order
     }
 }

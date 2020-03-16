@@ -1,6 +1,3 @@
-/**
- * 这只是一个简单的mqtt的broker
- */
 const mosca = require("mosca")
 const info = require("../utils").info("BROKER")
 const config = require("../../config.json")
@@ -19,9 +16,8 @@ class MqttBroker {
         server.on("ready", () => info("Mosca Broker is up and running"))
         server.on("clientConnected", (client) => info("Connected:", client.id))
         server.on("subscribed", (topic, client) => info("Subscribed", topic, "By", client.id))
-        server.on("published", (packet, client) => {
-                if (client) info("Published", packet.payload.toString(), "Under", packet.topic, "By", client.id)
-            }
+        server.on("published", (packet, client) =>
+            client ? info("Published", packet.payload.toString(), "Under", packet.topic, "By", client.id) : null
         )
         server.on("clientDisconnected", client => info("Disconnected:", client.id))
     }

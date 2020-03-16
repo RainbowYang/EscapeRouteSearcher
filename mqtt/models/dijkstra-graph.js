@@ -82,7 +82,7 @@ class DijkstraGraph {
 
         let end_index = Array.isArray(ends_id) ?
             //有多个end时，返回最短的路径
-            ends_id.map(id => this.indexOf(id)).reduce(
+            ends_id.map(this.indexOf.bind(this)).reduce(
                 (min, now) => dis[now].value < dis[min].value ? now : min)
             : this.indexOf(ends_id)
 

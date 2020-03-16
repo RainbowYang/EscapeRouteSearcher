@@ -1,13 +1,12 @@
-const mongo = require('./database/mongodb')
-const Maps = require('./database/maps')
+const db = require("./database/db-tools")
+
 const MapManager = require('./mqtt/models/map_manager')
 const DoorNode = require('./mqtt/models/door_node')
 
 const server = require('./mqtt/models/mqtt_broker')()
 
-mongo.getDatabase("bluetooth").then(async db => {
-    const maps = Maps(db)
-
+const maps = db.maps
+;(async () => {
     // express
     const express = require("express")
     const app = express()
@@ -29,4 +28,4 @@ mongo.getDatabase("bluetooth").then(async db => {
             node_b.publish(2)
         }, 1000)
     }, 1000)
-})
+})()
