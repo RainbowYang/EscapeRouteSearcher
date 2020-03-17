@@ -5,12 +5,9 @@ const Schema = mongoose.Schema
 
 const NodeSchema = new Schema({
     map_name: String,
-    nodes: [{
-        id: String,
-        status: Number,
-        order: [String],
-    }]
-
+    id: String,
+    status: {type: Number, default: 0},
+    order: [String],
 })
 
 module.exports = mongoose.model('nodes_status', NodeSchema)
