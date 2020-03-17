@@ -7,7 +7,7 @@ const NodeSchema = new Schema({
     map_name: String,
     id: String,
     status: {type: Number, default: 0},
-    order: [String],
+    path: [String],
 })
 
 module.exports = mongoose.model('nodes_status', NodeSchema)

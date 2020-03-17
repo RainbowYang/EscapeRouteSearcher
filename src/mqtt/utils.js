@@ -14,6 +14,6 @@ module.exports = {
     mqtt_url,
     splitTopic,
     topic,
-    makeOrderTopic: (map, id) => topic('order', map, id),
-    makeStatusTopic: (map, id) => topic('status', map, id)
+    orderTopic: (map, id) => topic('order', map, id),
+    statusTopic: (map, id) => topic('status', map, id)
 }

@@ -1,63 +1,59 @@
 const DijkstraGraph = require("../dijkstra-graph")
 const mqtt = require('mqtt')
 const utils = require("../utils")
+const node_model = require('../../database/models/nodes')
+const {statusTopic, splitTopic} = utils
 
-/**
- * MapManager用于根据节点的状态，计算节点的指令
- */
 class MapManager {
     constructor(map) {
         this.map = map
 
-        this.name = 'MapManager_' + map.name
-        this.info = utils.info(this.name)
+        node_model.deleteMany({map_name: this.map.name}).exec()
+        this.map.nodes.forEach(node => node_model.create({map_name: this.map.name, id: node.id}, err => null))
+
+        const name = 'MapManager_' + map.name
+        this.info = utils.info(name)
 
         // node的order缓存
         this.orders = new Map()
 
-        this.proxy = new MapManager.Proxy(this)
         this.graph = new DijkstraGraph(map.nodes.length)
-        map.edges.forEach(edge => this.graph.setEdge(edge.source, edge.target, edge.distance, true))
-    }
+        this.map.edges.forEach(edge =>
+            this.graph.setEdge(edge.source, edge.target, edge.distance, true))
 
-    setStatus(id, status) {
-        this.map.edges.filter(edge => edge.target.toString() === id).forEach(edge =>
-            this.graph.setEdge(edge.source, edge.target, edge.distance * Math.exp(parseInt(status))))
-    }
-
-    getOrder(id) {
-        let order = this.graph.getPath(id, this.map.exits).map(index => this.map.nodes[index].id).join(" ")
-        return order === this.orders[id] ? null : this.orders[id] = order
-    }
-}
-
-/**
- * 为 [MapManager] 处理mqtt通信
- * @type {MapManager.MapManagerProxy}
- */
-MapManager.Proxy = class Proxy {
-    constructor(manager) {
-        let client = mqtt.connect(utils.mqtt_url(), {clientId: manager.name})
-
-        // 连接时，订阅所有节点的信息
-        client.on('connect', () => {
-                let topic = utils.makeStatusTopic(manager.map.name, "#")
-                client.subscribe(topic, {qos: 1}, () => manager.info("Subscribed", topic))
-            }
-        )
+        this.client = mqtt.connect(utils.mqtt_url(), {clientId: map.name})
+        this.client.subscribe(statusTopic(map.name, "#"), {qos: 1})
 
         // 收到信息时，处理收到的节点状态，发布节点的指令
-        client.on('message', (topic, payload) => {
-            manager.info("Received", payload.toString(), "Under", topic)
-            manager.setStatus(utils.splitTopic(topic).node_id, payload)
-            manager.map.nodes.forEach(node => {
-                let order = manager.getOrder(node.id)
-                if (order) {
-                    let orderTopic = utils.makeOrderTopic(manager.map.name, node.id)
-                    client.publish(orderTopic, order, {qos: 1, retain: true},
-                        () => manager.info("Publish", order, "Under", orderTopic))
-                }
-            })
+        this.client.on('message', (topic, payload) => {
+            this.info("Received", payload.toString(), "Under", topic)
+
+            let {node_id} = splitTopic(topic)
+            this.statusChanged(node_id, payload.toString())
+        })
+    }
+
+    statusChanged(id, status) {
+        this.map.edges
+            .filter(edge => edge.target === id)
+            .forEach(edge =>
+                this.graph.setEdge(edge.source, edge.target, edge.distance * Math.exp(parseInt(status))))
+
+        node_model.findOneAndUpdate({map_name: this.map.name, id}, {status}).exec()
+
+        this.map.nodes.forEach(node => {
+            let path = this.graph.getPath(node.id, this.map.exits)
+            let order = path.join(' ')
+
+            if (order !== this.orders[node.id]) {
+                this.orders[node.id] = order
+
+                let orderTopic = utils.orderTopic(this.map.name, node.id)
+                this.client.publish(orderTopic, order, {qos: 1, retain: true},
+                    () => this.info("Publish", order, "Under", orderTopic))
+
+                node_model.findOneAndUpdate({map_name: this.map.name, id: node.id}, {path}).exec()
+            }
         })
     }
 }

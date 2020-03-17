@@ -1,4 +1,7 @@
 {
+    "express": {
+        "port": 3000
+    },
     "mqtt": {
         "ip": "localhost",
         "port": 1883,

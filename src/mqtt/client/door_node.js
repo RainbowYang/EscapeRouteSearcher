@@ -12,8 +12,8 @@ class DoorNode {
     constructor(id, mapName) {
         this.name = `Node_${mapName}_${id}`
         this.info = utils.info(this.name)
-        this.subscribeTopic = utils.makeOrderTopic(mapName, id)
-        this.publishTopic = utils.makeStatusTopic(mapName, id)
+        this.subscribeTopic = utils.orderTopic(mapName, id)
+        this.publishTopic = utils.statusTopic(mapName, id)
 
         this.client = mqtt.connect(utils.mqtt_url(), {clientId: this.name})
         this.client.on('connect', () => {

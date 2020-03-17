@@ -35,7 +35,8 @@ app.use('/api/nodes', require('./src/routers/nodes'))
 app.get('/show/:name', (req, res) => res.sendFile(__dirname + "/public/show.html"))
 app.get('/edit/:name', (req, res) => res.sendFile(__dirname + "/public/editNode.html"))
 
-app.listen(3000, () => console.log("web open at 3000"))
+let port = require("./config.json").express.port
+app.listen(port, () => console.log("web open at", port))
 
 // const open = require("open")
 // open("http://localhost:3000/?map=show/test")
@@ -46,7 +47,6 @@ const mqtt_broker = require('./src/mqtt/broker/mqtt_broker').run()
 
 const MapManager = require('./src/mqtt/client/map_manager')
 const DoorNode = require('./src/mqtt/client/door_node')
-
 
 const map_model = require('./src/database/models/maps')
 map_model.find().exec((err, maps) => {
