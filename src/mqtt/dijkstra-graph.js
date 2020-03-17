@@ -1,4 +1,4 @@
-const MAX = 1E100
+const MAX = Number.MAX_SAFE_INTEGER
 const repeat = (count) => '0'.repeat(count).split('')
 
 class DijkstraGraph {

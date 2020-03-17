@@ -6,7 +6,7 @@
  * 每个节点都应该（通过 "status/[id]" 的topic）发布(publish)自身周围的火灾状态，并设置qos大于等于1。
  */
 const mqtt = require('mqtt')
-const utils = require("./utils")
+const utils = require("../utils")
 
 class DoorNode {
     constructor(id, mapName) {
@@ -15,7 +15,7 @@ class DoorNode {
         this.subscribeTopic = utils.makeOrderTopic(mapName, id)
         this.publishTopic = utils.makeStatusTopic(mapName, id)
 
-        this.client = mqtt.connect(utils.getMqttAddress(), {clientId: this.name})
+        this.client = mqtt.connect(utils.mqtt_url(), {clientId: this.name})
         this.client.on('connect', () => {
             this.client.subscribe(this.subscribeTopic)
             this.publish(0)

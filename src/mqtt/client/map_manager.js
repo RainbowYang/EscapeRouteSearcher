@@ -1,6 +1,6 @@
-const DijkstraGraph = require("./dijkstra-graph")
+const DijkstraGraph = require("../dijkstra-graph")
 const mqtt = require('mqtt')
-const utils = require("./utils")
+const utils = require("../utils")
 
 /**
  * MapManager用于根据节点的状态，计算节点的指令
@@ -35,9 +35,9 @@ class MapManager {
  * 为 [MapManager] 处理mqtt通信
  * @type {MapManager.MapManagerProxy}
  */
-MapManager.Proxy = class MapManagerProxy {
+MapManager.Proxy = class Proxy {
     constructor(manager) {
-        let client = mqtt.connect(utils.getMqttAddress(), {clientId: manager.name})
+        let client = mqtt.connect(utils.mqtt_url(), {clientId: manager.name})
 
         // 连接时，订阅所有节点的信息
         client.on('connect', () => {
@@ -49,7 +49,7 @@ MapManager.Proxy = class MapManagerProxy {
         // 收到信息时，处理收到的节点状态，发布节点的指令
         client.on('message', (topic, payload) => {
             manager.info("Received", payload.toString(), "Under", topic)
-            manager.setStatus(utils.splitTopic(topic).id, payload)
+            manager.setStatus(utils.splitTopic(topic).node_id, payload)
             manager.map.nodes.forEach(node => {
                 let order = manager.getOrder(node.id)
                 if (order) {

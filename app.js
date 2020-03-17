@@ -16,6 +16,7 @@ const db = mongoose.connection
 // 将连接与错误事件绑定（以获得连接错误的提示）
 db.on('error', console.error.bind(console, 'MongoDB 连接错误：'))
 
+
 // express 模块
 const express = require("express")
 const bodyParser = require("body-parser")
@@ -34,16 +35,18 @@ app.use('/api/nodes', require('./src/routers/nodes'))
 app.get('/show/:name', (req, res) => res.sendFile(__dirname + "/public/show.html"))
 app.get('/edit/:name', (req, res) => res.sendFile(__dirname + "/public/editNode.html"))
 
-app.listen(3000, () => console.log("open at 3000"))
+app.listen(3000, () => console.log("web open at 3000"))
 
-const open = require("open")
-open("http://localhost:3000/?map=show/test")
+// const open = require("open")
+// open("http://localhost:3000/?map=show/test")
 
-// const db = require("./src/database/db-tools")
-const MapManager = require('./src/mqtt/map_manager')
-const DoorNode = require('./src/mqtt/door_node')
 
-const server = require('./src/mqtt/mqtt_broker')()
+// MQTT 模块
+const mqtt_broker = require('./src/mqtt/broker/mqtt_broker').run()
+
+const MapManager = require('./src/mqtt/client/map_manager')
+const DoorNode = require('./src/mqtt/client/door_node')
+
 
 const map_model = require('./src/database/models/maps')
 map_model.find().exec((err, maps) => {

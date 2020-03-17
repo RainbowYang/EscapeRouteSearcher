@@ -74,7 +74,7 @@
                 overflow: hidden !important;"></iframe>
       </el-main>
     </el-container>
-<!--    <el-footer>Footer</el-footer>-->
+    <!--    <el-footer>Footer</el-footer>-->
   </el-container>
 </div>
 <script>
@@ -87,7 +87,10 @@
 
         },
         created() {
-            axios.get('/maps').then(response => response.data.forEach(map => this.maps_name.push(map.name)))
+            axios.get('/maps').then(response => {
+                    this.maps_name = response.data
+                }
+            )
             if (getURLArg("map"))
                 $("iframe").attr("src", '/' + getURLArg("map"))
             // if (getURLArg("edit_map")) {

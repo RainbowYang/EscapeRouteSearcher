@@ -1,13 +1,19 @@
-const moment = require('moment')
 const config = require("../../config.json")
+const moment = require('moment')
+
 const getTime = () => moment().format("YYYY/MM/DD HH:mm:ss.SSS")
+const info = name => (...msg) => console.log(`[${getTime()}]`, `[${name.toString()}]`, ...msg)
+const mqtt_url = () => `mqtt://${config.mqtt.ip}:${config.mqtt.port}`
+const topic = (type, map_name, node_id) => `/${type}/${map_name}/${node_id}`
+const splitTopic = (topic) => {
+    let s = topic.toString().split("/").filter(t => t !== "")
+    return {type: s[0], map_name: s[1], node_id: s[2]}
+}
 module.exports = {
-    info: (name) => (...msg) => console.log(`[${getTime()}]`, `[${name.toString()}]`, ...msg),
-    getMqttAddress: () => `mqtt://${config.mqtt.ip}:${config.mqtt.port}`,
-    makeOrderTopic: (map, id) => `/order/${map}/${id}`,
-    makeStatusTopic: (map, id) => `/status/${map}/${id}`,
-    splitTopic(topic) {
-        let s = topic.toString().split("/").filter(t => t !== "")
-        return {type: s[0], map: s[1], id: s[2]}
-    }
+    info,
+    mqtt_url,
+    splitTopic,
+    topic,
+    makeOrderTopic: (map, id) => topic('order', map, id),
+    makeStatusTopic: (map, id) => topic('status', map, id)
 }
