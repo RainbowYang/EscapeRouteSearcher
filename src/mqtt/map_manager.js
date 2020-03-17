@@ -1,6 +1,6 @@
 const DijkstraGraph = require("./dijkstra-graph")
 const mqtt = require('mqtt')
-const utils = require("../utils")
+const utils = require("./utils")
 
 /**
  * MapManager用于根据节点的状态，计算节点的指令

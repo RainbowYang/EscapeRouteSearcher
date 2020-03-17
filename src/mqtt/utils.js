@@ -1,5 +1,5 @@
 const moment = require('moment')
-const config = require("../config.json")
+const config = require("../../config.json")
 const getTime = () => moment().format("YYYY/MM/DD HH:mm:ss.SSS")
 module.exports = {
     info: (name) => (...msg) => console.log(`[${getTime()}]`, `[${name.toString()}]`, ...msg),

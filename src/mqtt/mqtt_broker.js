@@ -1,5 +1,5 @@
 const mosca = require("mosca")
-const info = require("../utils").info("BROKER")
+const info = require("./utils").info("BROKER")
 const config = require("../../config.json")
 const settings = {
     port: config.mqtt.port,

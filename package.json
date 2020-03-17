@@ -6,13 +6,16 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "body-parser": "latest",
     "cookie-parser": "~1.4.4",
     "debug": "^4.1.1",
     "express": "^4.17.1",
     "http-errors": "^1.7.3",
     "moment": "^2.24.0",
+    "mongoose": "^5.9.4",
     "morgan": "~1.9.1",
     "mosca": "^2.8.3",
+    "open": "^7.0.3",
     "pug": "^2.0.4",
     "ramda": "^0.27.0"
   },
