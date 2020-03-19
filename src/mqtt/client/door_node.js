@@ -17,13 +17,15 @@ class DoorNode {
 
         this.client = mqtt.connect(utils.mqtt_url(), {clientId: this.name})
         this.client.subscribe(this.subscribeTopic)
-        this.client.on('message', (topic, message) => this.info("Received", message.toString()))
+        this.client.on('message',
+            (topic, message) => this.info("Received", message.toString()))
     }
 
     publish(message) {
         this.client.publish(this.publishTopic, message.toString(),
             {qos: 1, retain: true},
-            () => this.info("Publish", message.toString()))
+            // () => this.info("Publish", message.toString())
+        )
         return this
     }
 }

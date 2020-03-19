@@ -28,8 +28,7 @@ class MapManager {
 
         // 收到信息时，处理收到的节点状态，发布节点的指令
         this.client.on('message', (topic, payload) => {
-            this.info("Received", payload.toString(), "Under", topic)
-
+            // this.info("Received", payload.toString(), "Under", topic)
             let {node_id} = splitTopic(topic)
             this.statusChanged(node_id, payload.toString())
             this.calcPath()
@@ -60,7 +59,8 @@ class MapManager {
 
                 let orderTopic = utils.orderTopic(this.map.name, node.id)
                 this.client.publish(orderTopic, order, {qos: 1, retain: true},
-                    () => this.info("Publish", order, "Under", orderTopic))
+                    // () => this.info("Publish", order, "Under", orderTopic)
+                )
 
                 NodeModel.findOneAndUpdate({map_name: this.map.name, id: node.id}, {path}).exec()
             }
