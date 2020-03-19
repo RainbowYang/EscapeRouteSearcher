@@ -98,7 +98,7 @@ MapManager.Proxy = class MapManagerProxy {
     constructor(manager, callback) {
         this.manager = manager
 
-        this.proxy = mqtt.connect(`mqtt://localhost:9001`, {clientId: "WebMapManager_" + manager.name})
+        this.proxy = mqtt.connect(`mqtt://localhost:9001`, {clientId: "Web_" + manager.name})
         this.proxy.on('connect', () =>
             this.manager.map.nodes.forEach(node => {
                 this.proxy.subscribe(makeStatusTopic(this.manager.map.name, node.id), {qos: 1})

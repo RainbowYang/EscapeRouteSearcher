@@ -30,7 +30,7 @@ class MqttBroker {
 
         aedes.on("publish",
             (packet, client) => client ?
-                info(client.id, "publish", packet.topic, "with", packet.payload.toString()) : null
+                info(client.id, "publish", '"' + packet.topic + '"', "with", '"' + packet.payload.toString() + '"') : null
         )
     }
 }

@@ -10,23 +10,21 @@ const utils = require("../utils")
 
 class DoorNode {
     constructor(id, mapName) {
-        this.name = `Node_${mapName}_${id}`
+        this.name = `Node(${mapName}/${id})`
         this.info = utils.info(this.name)
         this.subscribeTopic = utils.orderTopic(mapName, id)
         this.publishTopic = utils.statusTopic(mapName, id)
 
         this.client = mqtt.connect(utils.mqtt_url(), {clientId: this.name})
-        this.client.on('connect', () => {
-            this.client.subscribe(this.subscribeTopic)
-            this.publish(0)
-        })
+        this.client.subscribe(this.subscribeTopic)
         this.client.on('message', (topic, message) => this.info("Received", message.toString()))
     }
 
     publish(message) {
         this.client.publish(this.publishTopic, message.toString(),
-            {qos: 1, retain: 1},
+            {qos: 1, retain: true},
             () => this.info("Publish", message.toString()))
+        return this
     }
 }
 

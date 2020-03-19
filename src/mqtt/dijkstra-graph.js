@@ -86,6 +86,7 @@ class DijkstraGraph {
                 (min, now) => dis[now].value < dis[min].value ? now : min)
             : this.indexOf(ends_id)
 
+        // console.log(dis)
         return dis[end_index].path.map(value => this.nodeMap[value])
     }
 }

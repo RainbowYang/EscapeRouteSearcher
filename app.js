@@ -22,6 +22,13 @@ const express = require("express")
 const bodyParser = require("body-parser")
 const app = express()
 
+app.all('*', function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*")
+    res.header("Access-Control-Allow-Headers", "X-Requested-With,X-Token")
+    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+    next()
+})
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 
@@ -48,17 +55,14 @@ const mqtt_broker = require('./src/mqtt/broker/mqtt_broker').run()
 const MapManager = require('./src/mqtt/client/map_manager')
 const DoorNode = require('./src/mqtt/client/door_node')
 
-const map_model = require('./src/database/models/maps')
+// TODO 需要整合 根据数据库里的地图生成对应的MapManager
+const map_model = require('./src/database/models/map_structure')
 map_model.find().exec((err, maps) => {
     const managers = maps.map(MapManager)
-    setTimeout(async () => {
-        let node_a = DoorNode("a")
-        let node_b = DoorNode("b")
-        let node_c = DoorNode("c")
-        let node_d = DoorNode("d")
-        let node_e = DoorNode("e")
-        setTimeout(() => {
-            node_b.publish(2)
-        }, 1000)
-    }, 1000)
+
+    DoorNode("center").publish(2)
+    DoorNode("up").publish(0)
+    DoorNode("down").publish(0)
+    DoorNode("left").publish(0)
+    DoorNode("right").publish(0)
 })
