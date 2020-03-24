@@ -2,63 +2,48 @@ const express = require('express')
 const router = express.Router()
 const MapModel = require('../database/models/map_structure')
 
-// 获取所有地图名称
+const unique = arr => [...new Set(arr)]
+
 router.get('/', async (req, res) => {
-    MapModel.find({}, "name")
-        .exec((err, maps) => {
-            err ? res.send(err) : res.json([...new Set(maps.map(map => map.name))]) // 去重
-        })
+    let {name, require} = req.query
+
+    let conditions = {}
+    if (name) {// 不设置name表示获取全部
+        conditions.name = name
+    }
+
+    let maps = await MapModel.find(conditions).sort({updated: -1}) //默认把最新的放在前面
+
+    if (require) {
+        maps = unique(maps.filter(map => map[require]).map(map => map[require]))
+    }
+
+    res.json(maps)
 })
 
-// 获取所有地图所有记录
-router.get('/ALL', (req, res) => {
-    MapModel.find()
-        .exec((err, maps) => {
-            err ? res.send(err) : res.json(maps)
-        })
+// TODO 应为权限操作
+router.post('/', async (req, res) => {
+    let {name, nodes, edges} = req.body
+    let map = {name, nodes, edges}
+    try {
+        let saved_map = await MapModel.create(map)
+        res.send(saved_map)
+    } catch (err) {
+        console.error(err)
+        res.send(err)
+    }
 })
 
-// 获取指定地图所有记录
-router.get('/:map_name', (req, res) => {
-    let name = req.params.map_name
-    MapModel.find({name})
-        .exec((err, maps) => {
-            err ? res.send(err) : res.json(maps)
-        })
-})
+// TODO 应为权限操作 警告操作
+router.delete('/', async (req, res) => {
+    let {name} = req.query
 
-// 获取指定地图最后记录
-router.get('/:map_name/last', (req, res) => {
-    let name = req.params.map_name
-    MapModel.find({name}).sort("-updated")
-        .exec((err, maps) => {
-            err ? res.send(err) : res.json(maps[0])
-        })
-})
-
-// 添加map记录
-// TODO 应为高权限操作
-router.post('/', (req, res) => {
-    delete req.body._id
-    delete req.body.updated
-
-    let map = req.body
-    MapModel.create(req.body, err => err ? res.send(err) : res.send("Saved"))
-})
-router.post('/:map_name', (req, res) => {
-    delete req.body._id
-    delete req.body.updated
-
-    let map = req.body
-    map.name = req.params.map_name
-    MapModel.create(map, err => err ? res.send(err) : res.send("Saved"))
-})
-
-// 删除指定map所有记录
-// TODO 应为高权限操作
-router.delete('/:map_name', (req, res) => {
-    let name = req.params.map_name
-    MapModel.deleteMany({name: name}, err => err ? res.send(err) : res.send("Deleted"))
+    if (name) {
+        let result = await MapModel.remove({name})
+        res.json(result)
+    } else {
+        res.send("'name' is required")
+    }
 })
 
 

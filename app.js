@@ -49,20 +49,28 @@ app.listen(port, () => console.log("web open at", port))
 // open("http://localhost:3000/?map=show/test")
 
 
-// MQTT 模块
-const mqtt_broker = require('./src/mqtt/broker/mqtt_broker').run()
-
-const MapManager = require('./src/mqtt/client/map_manager')
-const DoorNode = require('./src/mqtt/client/door_node')
-
-// TODO 需要整合 根据数据库里的地图生成对应的MapManager
-const map_model = require('./src/database/models/map_structure')
-map_model.find().exec((err, maps) => {
-    const managers = maps.map(MapManager)
-
-    DoorNode("center").publish(2)
-    DoorNode("up").publish(0)
-    DoorNode("down").publish(0)
-    DoorNode("left").publish(0)
-    DoorNode("right").publish(0)
-})
+// // MQTT 模块
+// const mqtt_broker = require('./src/mqtt/broker/mqtt_broker').run()
+//
+// const MapManager = require('./src/mqtt/client/map_manager')
+// const DoorNode = require('./src/mqtt/client/door_node')
+//
+// // TODO 需要整合 根据数据库里的地图生成对应的MapManager
+// const map_model = require('./src/database/models/map_structure')
+//
+// let managers
+// map_model.find().exec((err, maps) => {
+//     managers = maps.map(MapManager)
+//
+//     DoorNode("center").publish(2)
+//
+//     DoorNode("up").publish(0)
+//     DoorNode("down").publish(0)
+//     DoorNode("left").publish(0)
+//     DoorNode("right").publish(0)
+//
+//     DoorNode("up_left").publish(0)
+//     DoorNode("up_right").publish(0)
+//     DoorNode("down_left").publish(0)
+//     DoorNode("down_right").publish(0)
+// })

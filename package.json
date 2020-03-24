@@ -1,30 +1,28 @@
 {
-  "name": "escape-route-searcher",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "start": "node ./bin/www"
-  },
-  "dependencies": {
-    "aedes": "^0.40.1",
-    "axios": "^0.19.2",
-    "body-parser": "latest",
-    "cookie-parser": "~1.4.4",
-    "debug": "^4.1.1",
-    "express": "^4.17.1",
-    "http-errors": "^1.7.3",
-    "moment": "^2.24.0",
-    "mongoose": "^5.9.4",
-    "morgan": "~1.9.1",
-    "mosca": "^2.8.3",
-    "open": "^7.0.3",
-    "pug": "^2.0.4",
-    "ramda": "^0.27.0",
-      "websocket-stream": "latest"
-  },
-  "devDependencies": {
-    "jsonwebtoken": "^8.5.1",
-    "mongodb": "^3.5.2",
-    "mqtt": "^3.0.0"
-  }
+    "name": "escape-route-searcher",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "start": "node ./bin/www"
+    },
+    "dependencies": {
+        "aedes": "^0.40.1",
+        "axios": "^0.19.2",
+        "body-parser": "latest",
+        "cookie-parser": "^1.4.5",
+        "debug": "^4.1.1",
+        "express": "^4.17.1",
+        "http-errors": "^1.7.3",
+        "jsonwebtoken": "^8.5.1",
+        "moment": "^2.24.0",
+        "mongodb": "^3.5.5",
+        "mongoose": "^5.9.6",
+        "morgan": "^1.10.0",
+        "mqtt": "^3.0.0",
+        "open": "^7.0.3",
+        "pug": "^2.0.4",
+        "ramda": "^0.27.0",
+        "websocket-stream": "latest"
+    },
+    "devDependencies": {}
 }
