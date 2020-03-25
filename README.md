@@ -34,82 +34,35 @@
 #### 删除地图
 `DELETE`  /api/maps?name={name}
 
+#### 获取节点实时状态
 
-#### 节点实时状态
+`GET` /api/nodes?map_name={map_name}&id={id}
 
-
-#### Maps
-定义Map类型为
-```javascript
-return  {
-   name: String,
-   nodes: [{
-       id: String,
-       x: Number,
-       y: Number
-   }],
-   edges: [{
-       source: String,
-       target: String,
-       distance: Number
-   }],
-   updated: Date
+```js
+let MapType = {
+    name: String,
+    nodes: [{
+        id: String,
+        x: Number,
+        y: Number,
+        isExit: Boolean
+    }],
+    edges:[{
+        source: String,
+    	target: String,
+    	distance: Number	
+    }],
+    updated: Date
 }
 ```
 
-+ GET /api/maps 
-
-获取所有地图名字
-
-```javascript
-return [String]
-```
-
-+ GET   /api/maps/{name}
-
-获取指定地图当前信息
-
-```javascript
-return Map
-```
-
-+ GET   /api/maps/{name}/history
-获取指定地图所有历史信息
-```javascript
-return [Map]
-```
-
-+ POST   /api/maps   添加指定地图
-
-需要json，格式见Map
-
-+ DELETE  /api/maps/{name}   删除指定地图
-
-#### Node_status
 ```js
-let node_status = {
-    map_name: String,
+let NodeType = {
+	map_name: String,
     id: String,
     status: Number,
-    order: [String],
+    path: [String],
+    updated: Date
 }
 ```
 
-
-+ GET    /api/nodes/{map_name} 获取指定地图所有节点信息
-
-```javascript
-return [node_status]
-```
-
-+ GET    /api/nodes/{map_name}/{id} 获取指定地图指定节点信息
-
-```javascript
-return node_status
-```
-
-
-
-## 前端
-
-访问 localhost:3000 => 主管理页面 
