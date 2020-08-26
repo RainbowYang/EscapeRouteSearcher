@@ -3,17 +3,16 @@
         "port": 3000
     },
     "mqtt": {
-        "ip": "localhost",
         "port": 1883,
         "ws_port": 9001
     },
     "mongodb": {
         "ip": "118.25.49.70",
         "port": 27017,
-        "location": "bluetooth",
+        "db": "bluetooth",
         "auth": {
-            "user": "admin",
-            "password": "blue"
+            "user": "bluetooth_dev",
+            "password": "bluetooth@R"
         }
     }
 }

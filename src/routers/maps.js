@@ -1,50 +1,38 @@
 const express = require('express')
 const router = express.Router()
-const MapModel = require('../database/models/map_structure')
-
-const unique = arr => [...new Set(arr)]
+const { uniq: unique } = require('lodash')
+const { MapModel } = require('../database/map')
 
 router.get('/', async (req, res) => {
-    let {name, require} = req.query
+  let { id, want } = req.query
 
-    let conditions = {}
-    if (name) {// 不设置name表示获取全部
-        conditions.name = name
-    }
+  // 不设置name表示获取全部
+  let conditions = id ? { id } : {}
+  let select = want ? { [want]: 1 } : {}
 
-    let maps = await MapModel.find(conditions).sort({updated: -1}) //默认把最新的放在前面
-
-    if (require) {
-        maps = unique(maps.filter(map => map[require]).map(map => map[require]))
-    }
-
-    res.json(maps)
+  let result = await MapModel.find(conditions, select).sort({ updated: -1 }) //默认把最新的放在前面
+  result = want ? unique(result.map(t => t[want])) : result
+  res.json(result)
 })
 
 // TODO 应为权限操作
 router.post('/', async (req, res) => {
-    let {name, nodes, edges} = req.body
-    let map = {name, nodes, edges}
-    try {
-        let saved_map = await MapModel.create(map)
-        res.send(saved_map)
-    } catch (err) {
-        console.error(err)
-        res.send(err)
-    }
+  let { name, nodes, edges } = req.body
+  try {
+    res.json(await MapModel.create({ name, nodes, edges }))
+  } catch (err) {
+    res.json(err)
+  }
 })
 
 // TODO 应为权限操作 警告操作
 router.delete('/', async (req, res) => {
-    let {name} = req.query
+  let { id } = req.query
 
-    if (name) {
-        let result = await MapModel.remove({name})
-        res.json(result)
-    } else {
-        res.send("'name' is required")
-    }
+  if (id) {
+    let result = await MapModel.remove({ id })
+    res.json(result)
+  }
 })
-
 
 module.exports = router
