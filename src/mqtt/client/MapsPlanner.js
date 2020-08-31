@@ -1,9 +1,9 @@
 const mqtt = require('mqtt')
+const AsyncLock = require('async-lock')
+const lock = new AsyncLock()
 const { underline } = require('chalk')
 
-const { MapModel } = require('../../database/map')
-const { NodeStatusModel } = require('../../database/node_status')
-
+const db = require('../../database/db')
 const { MQTT_URL } = require('../broker/MQTTBroker')
 
 const { DijkstraGraph } = require('../../utils/DijkstraGraph')
@@ -20,74 +20,85 @@ class MapPlannerManager {
 
     this.client = mqtt.connect(MQTT_URL, { clientId: 'MapPlannerManager' })
     this.client.subscribe('status/#')
-
-    this.client.on('message', (topic, payload) => {
+    this.client.on('message', async (topic, payload) => {
       this.info('Received', underline(payload.toString()))
-
       let { map_id, node_id } = Topic.fromString(topic)
 
       if (!this.planners.has(map_id)) {
         this.planners.set(map_id, new MapPlanner(map_id))
       }
-
-      this.planners.get(map_id).statusChanged(node_id, parseInt(payload.toString()), (order, node_id) =>
-        this.client.publish(new OrderTopic(map_id, node_id).toString(), order, { qos: 1, retain: true })
-      )
+      await this.planners.get(map_id).setStatus(node_id, parseInt(payload.toString()))
     })
   }
 }
 
+/**
+ * 负责发布节点的order
+ * 以及 更新数据库
+ */
 class MapPlanner {
-  static statusCoefficient = [1, 10, 100]
-
-  loaded = false
-
   constructor (map_id) {
     this.map_id = map_id
-    this.init().then(_ => this.loaded = true)
+    this.client = mqtt.connect(MQTT_URL, { clientId: `MapPlanner(${map_id})` })
   }
 
-  async init () {
-    let maps = await MapModel.find({ id: this.map_id }).sort({ updated: -1 }) // 倒序排列
-    let map = maps[0]
-    if (!map) {
+  async reloadMapData () {
+    if (!await db.map.has(this.map_id)) {
       throw 'Map(' + this.map_id + ') is not found'
     }
 
-    this.edges =
-      map.edges.map(({ source, target, distance }) => ({ source, target, distance }))
-        .concat(map.edges.map(({ source, target, distance }) => ({ source: target, target: source, distance })))
-    this.nodes = map.nodes.map(({ id }) => (id))
-    this.exits = map.nodes.filter(node => node.isExit).map(node => node.id)
+    let lastMap = await db.map.getLast(this.map_id)
 
-    this.graph = new DijkstraGraph(this.nodes.length)
-    this.edges.forEach(({ source, target, distance }) => this.graph.setEdge(source, target, distance))
+    if (!this.map || lastMap.updated.toString() !== this.map.updated.toString()) {
+      this.map = lastMap
+
+      this.edges = this.map.edges
+        .reduce((edges, { source, target, distance }) =>
+          edges.concat({ source, target, distance }, { source: target, target: source, distance }), [])
+
+      this.nodes = this.map.nodes
+        .map(node => ({ map_id: this.map_id, id: node.id }))
+
+      this.exits = this.map.nodes
+        .filter(node => node.isExit)
+        .map(node => node.id)
+
+      this.graph = new DijkstraGraph(this.nodes.length)
+      this.edges.forEach(({ source, target, distance }) => this.graph.setEdge(source, target, distance))
+    }
   }
 
-  statusChanged (node_id, status, publish) {
-    if (!this.loaded) {
-      setTimeout(() => this.statusChanged(node_id, status, publish), 100)
-      return
-    }
+  async setStatus (node_id, status) {
+    lock.acquire(this.map_id, async (done) => {
+      await this.reloadMapData()
 
-    let map_id = this.map_id
+      // 设置status
+      this.nodes
+        .find(({ id }) => id === node_id).status = status
 
-    // 根据status重新设置graph中的权重
-    this.edges
-      .filter(({ target }) => target === node_id)
-      .forEach(({ source, target, distance }) =>
-        this.graph.setEdge(source, target, distance * MapPlanner.statusCoefficient[status]))
+      // 根据status重新设置graph中的权重
+      this.edges
+        .filter(({ target }) =>
+          target === node_id)
+        .forEach(({ source, target, distance }) =>
+          this.graph.setEdge(source, target, distance * Math.exp(status)))
 
-    this.nodes
-      .forEach(id => {
-        let path = this.graph.getPath(id, this.exits)
-        publish(path.join(' '), id)
+      this.nodes
+        .forEach(node => {
+          let path = this.graph.getPath(node.id, this.exits)
+          if (node.path !== path) {
+            node.path = path
 
-        // updated to mongodb
-        let conditions = { map_id, id }
-        let update = node_id === id ? { path, status } : { path }
-        NodeStatusModel.update(conditions, update, { upsert: true }, (err, res) => { })
-      })
+            let topic = new OrderTopic(this.map_id, node.id).toString()
+            let order = node.path.join(' ')
+            this.client.publish(topic, order, { qos: 1, retain: true })
+          }
+        })
+
+      await db.node_status.setFor(this.map_id, this.nodes)
+
+      done()
+    })
   }
 }
 
