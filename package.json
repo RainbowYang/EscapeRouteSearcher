@@ -6,7 +6,7 @@
         "start": "node ./app.js"
     },
     "dependencies": {
-        "aedes": "^0.40.1",
+        "aedes": "^0.42.1",
         "async-lock": "^1.2.4",
         "axios": "^0.19.2",
         "body-parser": "latest",
